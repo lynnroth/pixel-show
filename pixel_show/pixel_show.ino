@@ -5,14 +5,6 @@
                           // pull the pin to ground momentarily.  On a high -> low
                           // transition the button press logic will execute.
 #define PAD_COUNT 10
-
-#define PIXEL0_PIN  16   // Digital IO pin connected to the NeoPixels.
-#define PIXEL1_PIN  17
-#define PIXEL2_PIN  18
-#define PIXEL3_PIN  19
-#define PIXEL4_PIN  20
-
-
 #define PIXEL_COUNT 60
 #define STRIP_COUNT 5
 
@@ -60,29 +52,31 @@ void loop() {
   // Get current button state.
   for (int i = 0; i < PAD_COUNT i++)
   {
-    newState[i] = digitalRead(i);
-  }
+    newState[i] = digitalRead(pad_pin[i]);
   
   
-  // Check if state changed from high to low (button press).
-  if (newState == LOW && oldState == HIGH) {
-    // Short delay to debounce button.
-    delay(20);
-    // Check if button is still low after debounce.
-    newState = digitalRead(BUTTON_PIN);
-    if (newState == LOW) {
-      showType++;
-      if (showType > 9)
-        showType=0;
-      startShow(showType);
+    
+    // Check if state changed from high to low (button press).
+    if (newState[i] == LOW && oldState[i] == HIGH) {
+      // Short delay to debounce button.
+      delay(20);
+      // Check if button is still low after debounce.
+      newState[i] = digitalRead(pad_pin[i]);
+      if (newState[i] == LOW) {
+        showType++;
+        if (showType > 9)
+          showType=0;
+        startShow(strip[i], showType);
+      }
     }
+  
+    // Set the last button state to the old state.
+    oldState = newState;
+  
   }
-
-  // Set the last button state to the old state.
-  oldState = newState;
 }
 
-void startShow(int i) {
+void startShow(Adafruit_NeoPixel strip, int i) {
   switch(i){
     case 0: colorWipe(strip.Color(0, 0, 0), 50);    // Black/off
             break;
