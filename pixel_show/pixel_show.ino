@@ -1,18 +1,20 @@
-// This is a demonstration on how to use an input device to trigger changes on your neo pixels.
-// You should wire a momentary push button to connect from ground to a digital IO pin.  When you
-// press the button it will change to a new pixel animation.  Note that you need to press the
-// button once to start the first animation!
 
 #include <Adafruit_NeoPixel.h>
-
-#define BUTTON_PIN   2    // Digital IO pin connected to the button.  This will be
+    // Digital IO pin connected to the button.  This will be
                           // driven with a pull-up resistor so the switch should
                           // pull the pin to ground momentarily.  On a high -> low
                           // transition the button press logic will execute.
+#define PAD_COUNT 10
 
-#define PIXEL_PIN    6    // Digital IO pin connected to the NeoPixels.
+#define PIXEL0_PIN  16   // Digital IO pin connected to the NeoPixels.
+#define PIXEL1_PIN  17
+#define PIXEL2_PIN  18
+#define PIXEL3_PIN  19
+#define PIXEL4_PIN  20
 
-#define PIXEL_COUNT 16
+
+#define PIXEL_COUNT 60
+#define STRIP_COUNT 5
 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
@@ -21,20 +23,46 @@
 //   NEO_GRB     Pixels are wired for GRB bitstream, correct for neopixel stick
 //   NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
 //   NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip), correct for neopixel stick
-Adafruit_NeoPixel strip = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip[STRIP_COUNT];
+Adafruit_NeoPixel strip[0] = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL0_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip[1] = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL1_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip[2] = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL2_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip[3] = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL3_PIN, NEO_GRB + NEO_KHZ800);
+Adafruit_NeoPixel strip[4] = Adafruit_NeoPixel(PIXEL_COUNT, PIXEL4_PIN, NEO_GRB + NEO_KHZ800);
 
-bool oldState = HIGH;
+bool oldState[PAD_COUNT];
+bool newState[PAD_COUNT];
+int pad_pin[PAD_COUNT];
+int strip_pin[STRIP_COUNT];
 int showType = 0;
 
 void setup() {
-  pinMode(BUTTON_PIN, INPUT_PULLUP);
-  strip.begin();
-  strip.show(); // Initialize all pixels to 'off'
+  
+  //initialize pad inputs
+  for (int i = 0; i < PAD_COUNT i++)
+  {
+    pinMode(i, INPUT_PULLUP);
+    oldState[i] = HIGH;
+    pad_pin[i] = i + 0; //Start Pad Pins on pin 0
+  }
+  
+  for (int i = 0; i < STRIP_COUNT; i++)
+  {
+    strip[i].begin();
+    strip[i].show(); // Initialize all pixels to 'off'
+    string_pin[i] = i + 16;  //Start Strip Pins on pin 16...
+  }
+
+  
 }
 
 void loop() {
   // Get current button state.
-  bool newState = digitalRead(BUTTON_PIN);
+  for (int i = 0; i < PAD_COUNT i++)
+  {
+    newState[i] = digitalRead(i);
+  }
+  
   
   // Check if state changed from high to low (button press).
   if (newState == LOW && oldState == HIGH) {
