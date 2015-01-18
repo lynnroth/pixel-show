@@ -25,3 +25,29 @@ void loadButtons()
 		oldState[i] = newState[i];
 	}
 }
+
+
+
+//Gets the mode based on the two pins.  0 = off, 1 = mode1, 2 = mode2
+int getMode()
+{
+	int mode1 = digitalRead(MODE1_PIN);
+	int mode2 = digitalRead(MODE2_PIN);
+
+	int mode = 0;  //default mode 0
+
+	if (mode1 && !mode2) { mode = 2; }
+	if (!mode1 && mode2) { mode = 1; }
+
+	return mode;
+}
+
+int didModeChange()
+{
+	int newMode = getMode();
+	if (newMode != currentMode)
+	{
+		return true;
+	}
+	return false;
+}

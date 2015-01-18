@@ -18,3 +18,14 @@ void initSections()
 		section[i].last = ((i + 1) * SECTION_PIXEL_COUNT) - 1;
 	}
 }
+
+void initControls()
+{
+	pinMode(MODE1_PIN, INPUT_PULLUP);
+	pinMode(MODE2_PIN, INPUT_PULLUP);
+
+	pinMode(MODE1_LED, OUTPUT);
+	pinMode(MODE2_LED, OUTPUT);
+	pinMode(ON_LED, OUTPUT);
+
+}

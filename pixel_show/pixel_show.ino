@@ -8,27 +8,36 @@ Pins
 4 - Pad4
 
 
+8 - MODE 1
+9 - MODE 2
 
-8 - NeoPixel Pin
 
 
+
+16 - NeoPixel Pin
+
+21 - LED ON 
+22 - LED MODE 1
+23 - LED MODE 2
+
+A0 - Pot
 */
 
 
 #include <Adafruit_NeoPixel.h>
 
-// Digital IO pin connected to the button.  This will be
-// driven with a pull-up resistor so the switch should
-// pull the pin to ground momentarily.  On a high -> low
-// transition the button press logic will execute.
 #define PAD_COUNT 5
-#define SECTION_PIXEL_COUNT 60
+#define SECTION_PIXEL_COUNT 4//60
 #define SECTION_COUNT 5
-#define PIXEL_PIN 8
+#define PIXEL_PIN 16
 #define PAD_PIN_START 0
 
+#define MODE1_PIN 8
+#define MODE2_PIN 9
+#define MODE1_LED 22
+#define MODE2_LED 23
+#define ON_LED 21
 
-#define MODE1_PIN 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -42,6 +51,7 @@ bool oldState[PAD_COUNT];
 bool newState[PAD_COUNT];
 int pad_pin[PAD_COUNT];
 int showType = 0;
+int currentMode = 0;
 
 int pixelCount = SECTION_PIXEL_COUNT * SECTION_COUNT;
 
@@ -55,6 +65,9 @@ Section section[SECTION_COUNT];
 							  
 void setup() {
 
+
+	initControls();
+
 	initPads();
 
 	initSections();
@@ -65,43 +78,43 @@ void setup() {
 
 void loop() {
 
-	int mode = getMode();
-
-	if (mode == 0)
+	currentMode = getMode();
+	
+	if (currentMode == 0)
 	{
+		digitalWrite(ON_LED, HIGH);
+		digitalWrite(MODE1_LED, LOW);
+		digitalWrite(MODE2_LED, LOW);
+
 		pixels_Off();
 	}
-	else if (mode == 1)
+	else if (currentMode == 1)
 	{
+		digitalWrite(ON_LED, LOW);
+		digitalWrite(MODE1_LED, HIGH);
+		digitalWrite(MODE2_LED, LOW);
+
 		mode1();
 	}
-	else if (mode == 2)
+	else if (currentMode == 2)
 	{
+		digitalWrite(ON_LED, LOW);
+		digitalWrite(MODE1_LED, LOW);
+		digitalWrite(MODE2_LED, HIGH);
+
 		mode2();
 	}
-	
-}
-
-
-//Gets the mode based on the two pins.  0 = off, 1 = mode1, 2 = mode2
-int getMode()
-{
-	return 0;
 }
 
 void mode1()
 {
-	loadPads();
+	loadButtons();
+	startShow(9);
 
 }
 
 
 void mode2()
 {
-
-}
-
-void loadPads()
-{
-	
+	startShow(8);
 }
