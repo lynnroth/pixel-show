@@ -1,3 +1,6 @@
 *.opensdf
 *.atsuo
 *.suo
+.vmps.xml
+*.sdf
+*.vmps.xml
