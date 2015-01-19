@@ -2,7 +2,11 @@
 
 void pixels_Off()
 {
-	colorWipe(strip.Color(0, 0, 0), 0);
+	uint32_t c = strip.Color(0, 0, 0);
+	for (uint16_t i = 0; i < strip.numPixels(); i++) {
+		strip.setPixelColor(i, c);
+	}
+	strip.show();
 }
 			
 

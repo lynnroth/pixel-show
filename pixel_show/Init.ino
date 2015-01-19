@@ -21,6 +21,7 @@ void initSections()
 
 void initControls()
 {
+	pinMode(SAVE_PIN, INPUT_PULLUP);
 	pinMode(MODE1_PIN, INPUT_PULLUP);
 	pinMode(MODE2_PIN, INPUT_PULLUP);
 
