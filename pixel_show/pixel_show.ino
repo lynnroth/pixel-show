@@ -79,7 +79,7 @@ unsigned long mode1_timerB = 0;
 int stepcount = 0;
 unsigned long previousMillis = 0;
 long interval = 100;
-unsigned int color = 0;
+unsigned int colorcount = 0;
 
 
 void setup() {
@@ -163,8 +163,9 @@ void mode1()
 		uint32_t color = 0;
 		if (stepcount == i)
 		{
-			color = Wheel(color % 255);
-			color++;
+			color = Wheel(colorcount);
+			colorcount+=10;
+			if (colorcount > 255) colorcount = 0;
 		}
 		strip.setPixelColor(i, color);
 	}
