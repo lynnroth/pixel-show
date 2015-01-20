@@ -3,7 +3,6 @@
 #ifndef FIXFFT_H
 #define FIXFFT_H
 
-#include <WProgram.h>
 
 
 /*
