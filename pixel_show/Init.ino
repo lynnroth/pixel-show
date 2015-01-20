@@ -1,7 +1,7 @@
 void initPads()
 {
 	//initialize pad inputs
-	for (int i = PAD_PIN_START; i < PAD_COUNT; i++)
+	for (int i = PAD_PIN_START; i < PAD_COUNT + PAD_PIN_START; i++)
 	{
 		pinMode(i, INPUT_PULLUP);
 		oldState[i] = HIGH;
@@ -11,12 +11,18 @@ void initPads()
 
 void initSections()
 {
-	//initialize Sections
-	for (int i = 0; i < SECTION_COUNT; i++)
-	{
-		section[i].first = (i * SECTION_PIXEL_COUNT);
-		section[i].last = ((i + 1) * SECTION_PIXEL_COUNT) - 1;
-	}
+	section[0].first = 3;
+	section[0].last = 0;
+	section[0].dir = -1;
+
+	//section[0].first = 29;
+	//section[0].last = 0;
+	//section[0].dir = -1;
+
+	//section[1].first = 30;
+	//section[1].last = 59;
+	//section[1].dir = 1;
+
 }
 
 void initControls()

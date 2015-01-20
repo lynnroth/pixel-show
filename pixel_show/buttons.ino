@@ -51,3 +51,18 @@ int didModeChange()
 	}
 	return false;
 }
+
+void readControls()
+{
+	if (!digitalRead(SAVE_PIN))
+	{
+		int newinterval = analogRead(0);
+
+		if (interval != newinterval)
+		{
+			interval = newinterval;
+			EEPROM_writeAnything(0, interval);
+		}
+	}
+}
+

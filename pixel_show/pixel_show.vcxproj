@@ -44,6 +44,10 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>c:\lynnr\code\hardware\mighty-1284p\cores\standard;c:\lynnr\code\hardware\mighty-1284p\variants\avr_developers;C:\Lynnr\code\pixel-show\pixel_show;c:\Program Files (x86)\arduino\libraries\EEPROM;c:\Program Files (x86)\arduino\libraries\EEPROM\utility;c:\lynnr\code\libraries\Adafruit_NeoPixel;c:\lynnr\code\libraries\Adafruit_NeoPixel\utility;c:\Program Files (x86)\arduino\libraries;c:\lynnr\code\hardware\mighty-1284p\libraries;C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers;c:\lynnr\code\libraries;c:\program files (x86)\arduino\hardware\tools\avr\avr\include\;c:\program files (x86)\arduino\hardware\tools\avr\avr\include\avr\;c:\program files (x86)\arduino\hardware\tools\avr\avr\;c:\program files (x86)\arduino\hardware\tools\avr\lib\gcc\avr\4.3.2\include\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ForcedIncludeFiles>C:\Lynnr\code\pixel-show\pixel_show\Visual Micro\.pixel_show.vsarduino.h;%(ForcedIncludeFiles)</ForcedIncludeFiles>
+      <IgnoreStandardIncludePath>true</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>__AVR_ATmega1284p__;__AVR_ATmega1284P__;ARDUINO=106;ARDUINO_MAIN;__AVR__;__avr__;F_CPU=16000000L;__cplusplus;GCC_VERSION=40301;ARDUINO_ARCH_AVR;ARDUINO_AVR_AVR_DEVELOPERS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -64,8 +68,34 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <None Include="buttons.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="Init.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="neo.ino">
+      <FileType>CppCode</FileType>
+    </None>
+    <None Include="pixel_show.ino">
+      <FileType>CppCode</FileType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EEPROMAnything.h">
+      <FileType>CppCode</FileType>
+    </ClInclude>
+    <ClInclude Include="Visual Micro\.pixel_show.vsarduino.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="EEPROMAnything.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
+  <ProjectExtensions>
+    <VisualStudio>
+      <UserProperties arduino.upload.maximum_size="130048" arduino.upload.speed="115200" visualmicro.package.name="mighty-1284p" arduino.board.property_bag="name=avr-developers.com pinouts 16MHz using Optiboot&#xD;&#xA;upload.protocol=arduino&#xD;&#xA;upload.maximum_size=130048&#xD;&#xA;upload.speed=115200&#xD;&#xA;bootloader.low_fuses=0xff&#xD;&#xA;bootloader.high_fuses=0xde&#xD;&#xA;bootloader.extended_fuses=0xfd&#xD;&#xA;bootloader.path=optiboot&#xD;&#xA;bootloader.file=optiboot_atmega1284p.hex&#xD;&#xA;bootloader.unlock_bits=0x3F&#xD;&#xA;bootloader.lock_bits=0x0F&#xD;&#xA;build.mcu=atmega1284p&#xD;&#xA;build.f_cpu=16000000L&#xD;&#xA;build.core=standard&#xD;&#xA;build.variant=avr_developers&#xD;&#xA;runtime.ide.path=c:\Program Files (x86)\arduino&#xD;&#xA;build.system.path=c:\lynnr\code\hardware\mighty-1284p\system&#xD;&#xA;runtime.ide.version=106&#xD;&#xA;originalid=avr_developers&#xD;&#xA;vm.platform.root.path=C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\arduino10x&#xD;&#xA;ide.hint=Arduino 0023 and 1.0.x Ide&#xD;&#xA;ide.location.key=Arduino&#xD;&#xA;ide.location.ide.winreg=Arduino 1.0.x Application&#xD;&#xA;ide.location.sketchbook.winreg=Arduino 1.0.x Sketchbook&#xD;&#xA;ide.location.sketchbook.preferences=sketchbook.path&#xD;&#xA;ide.location.sketchbook.default=%MYDOCUMENTS%\arduino&#xD;&#xA;ide.location.preferences=%VM_APPDATA_ROAMING%\arduino\preferences.txt&#xD;&#xA;ide.default.package=arduino&#xD;&#xA;ide.default.platform=avr&#xD;&#xA;ide.multiplatform=true&#xD;&#xA;ide.includes=arduino.h&#xD;&#xA;ide.platformswithoutpackage=true&#xD;&#xA;ide.includes.fallback=wprogram.h&#xD;&#xA;ide.extension=ino&#xD;&#xA;ide.extension.fallback=pde&#xD;&#xA;ide.versionLTEQ=149&#xD;&#xA;ide.exe=arduino.exe&#xD;&#xA;ide.hosts=atmel&#xD;&#xA;ide.url=http://arduino.cc/en/Main/Software&#xD;&#xA;vm.debug=true&#xD;&#xA;software=ARDUINO&#xD;&#xA;ide.appid=arduino10x&#xD;&#xA;location.sketchbook=c:\lynnr\code&#xD;&#xA;vm.core.include=arduino.h&#xD;&#xA;build.board=AVR_AVR_DEVELOPERS&#xD;&#xA;vm.boardsource.path=c:\lynnr\code\hardware\mighty-1284p&#xD;&#xA;runtime.platform.path=c:\lynnr\code\hardware\mighty-1284p&#xD;&#xA;vm.platformname.name=avr&#xD;&#xA;build.arch=AVR&#xD;&#xA;vm.runtime.compiler.showwarnings=false&#xD;&#xA;compiler.path=c:\Program Files (x86)\arduino\hardware\tools\avr\bin\&#xD;&#xA;includes= -I&quot;c:\lynnr\code\hardware\mighty-1284p\cores\standard&quot;  -I&quot;c:\lynnr\code\hardware\mighty-1284p\variants\avr_developers&quot;  -I&quot;c:\Program Files (x86)\arduino\libraries\EEPROM&quot;  -I&quot;c:\lynnr\code\libraries\Adafruit_NeoPixel&quot;  -I&quot;c:\Program Files (x86)\arduino\libraries&quot;  -I&quot;c:\lynnr\code\hardware\mighty-1284p\libraries&quot;  -I&quot;C:\Program Files (x86)\Visual Micro\Visual Micro for Arduino\Micro Platforms\default\debuggers&quot;  -I&quot;c:\lynnr\code\libraries&quot; &#xD;&#xA;build.path=C:\Users\lynnr\AppData\Local\VMicro\Arduino\Builds\pixel_show\avr_developers&#xD;&#xA;build.project_name=pixel_show&#xD;&#xA;build.variant.path=c:\lynnr\code\hardware\mighty-1284p\variants\avr_developers&#xD;&#xA;archive_file=core.a&#xD;&#xA;object_file=C:\Users\lynnr\AppData\Local\VMicro\Arduino\Builds\pixel_show\avr_developers\Adafruit_NeoPixel\Adafruit_NeoPixel.cpp.o&#xD;&#xA;source_file=c:\lynnr\code\libraries\Adafruit_NeoPixel\Adafruit_NeoPixel.cpp&#xD;&#xA;" visualmicro.application.name="arduino10x" arduino.build.mcu="atmega1284p" arduino.upload.protocol="arduino" arduino.build.f_cpu="16000000L" arduino.board.desc="avr-developers.com pinouts 16MHz using Optiboot" arduino.board.name="avr_developers" visualmicro.platform.name="avr" arduino.build.core="standard" />
+    </VisualStudio>
+  </ProjectExtensions>
 </Project>
