@@ -6,8 +6,6 @@
 #include <WProgram.h>
 
 
-
-
 /*
 fix_fft() - perform forward/inverse fast Fourier transform.
 fr[n],fi[n] are real and imaginary arrays, both INPUT AND

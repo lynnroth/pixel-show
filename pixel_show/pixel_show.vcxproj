@@ -80,15 +80,18 @@
     <None Include="pixel_show.ino">
       <FileType>CppCode</FileType>
     </None>
+    <None Include="Section.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EEPROMAnything.h">
       <FileType>CppCode</FileType>
     </ClInclude>
+    <ClInclude Include="fix_fft.h" />
     <ClInclude Include="Visual Micro\.pixel_show.vsarduino.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EEPROMAnything.cpp" />
+    <ClCompile Include="fix_fft.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

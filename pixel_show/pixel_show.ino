@@ -143,6 +143,14 @@ void loop() {
 
 void mode1()
 {
+
+	if (currentMillis - previousMillis <= interval) {
+		return;
+	}
+
+	// save the last time you blinked the LED 
+	previousMillis = currentMillis;
+
 	loadButtons();
 
 	for (int i = 0; i < PAD_COUNT; i++)
@@ -151,10 +159,25 @@ void mode1()
 		{
 			for (int j = 0; j < SECTION_PIXEL_COUNT; j++)
 			{
-				int p = section[i * 2].GetPixel(j);
-
+				int p1 = section[i * 2].GetPixel(j);
+				int p2 = section[i * 2 + 1].GetPixel(j); 
+				
+				uint32_t color = 0;
+				if (stepcount == i)
+				{
+					color = Wheel(colorcount);
+					colorcount += 10;
+					if (colorcount > 255) colorcount = 0;
+				}
+				strip.setPixelColor(p1, color);
+				strip.setPixelColor(p2, color);
 			}
-			//StartLooping Section[i*2] and Section[i*2+1]
+			strip.show();
+			stepcount++;
+			if (stepcount >= SECTION_PIXEL_COUNT)
+			{
+				stepcount = 0;
+			}
 		}
 	}
 
