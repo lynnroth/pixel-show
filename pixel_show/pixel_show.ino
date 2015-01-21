@@ -24,6 +24,8 @@ A0 - Pot
 */
 
 
+#include "Section.cpp"
+#include <FFT.h>
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
 #include <Adafruit_NeoPixel.h>
@@ -34,9 +36,9 @@ A0 - Pot
 #define PIXEL_PIN 16
 #define PAD_PIN_START 0
 
-#define MODE1_PIN 8
-#define MODE2_PIN 9
-#define SAVE_PIN 10
+#define MODE1_PIN 12
+#define MODE2_PIN 13
+#define SAVE_PIN 14
 #define MODE1_LED 22
 #define MODE2_LED 23
 #define ON_LED 21
@@ -58,13 +60,8 @@ int currentMode = 0;
 
 int pixelCount = SECTION_PIXEL_COUNT * SECTION_COUNT;
 
-struct Section
-{
-	int first;
-	int last;
-};
 				  
-Section section[SECTION_COUNT];
+SectionClass section[SECTION_COUNT];
 
 #define MODE1_DISTANCE 3
 
@@ -83,8 +80,13 @@ unsigned int colorcount = 0;
 
 
 void setup() {
+	Serial.begin(115200);
 
 	EEPROM_readAnything(0, interval);
+
+	Serial.print("Interval = " );
+	Serial.print(interval);
+	
 
 	initControls();
 
@@ -132,7 +134,7 @@ void loop() {
 
 void readControls()
 {
-	if (digitalRead(0))
+	if (!digitalRead(10))
 	{
 		int newinterval = analogRead(0);
 
@@ -144,9 +146,42 @@ void readControls()
 	}
 }
 
-
-
 void mode1()
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - previousMillis <= interval) {
+		return;
+	}
+	// save the last time you blinked the LED 
+	previousMillis = currentMillis;
+	
+	for (int s = 0; s < SECTION_COUNT; s++)
+	{
+		for (int i = 0; i < section[s].length; i++)
+		{
+			int p = section[s].GetPixel(i);
+			Serial.println(p);
+			
+			uint32_t color = 0; 
+			if (stepcount == i)
+			{
+				color = Wheel(colorcount);
+				colorcount += 10;
+				if (colorcount > 255) colorcount = 0;
+			}
+			strip.setPixelColor(p, color);
+		}
+		strip.show();
+		stepcount++;
+		if (stepcount >= section[s].length)
+		{
+			stepcount = 0;
+		}
+	}
+}
+
+void mode2()
 {
 	
 	unsigned long currentMillis = millis();
@@ -179,7 +214,7 @@ void mode1()
 }
 
 
-void mode2()
+void mode3()
 {
 	uint32_t c = strip.Color(255, 0, 0);
 	for (uint16_t i = 0; i < strip.numPixels(); i++) {
