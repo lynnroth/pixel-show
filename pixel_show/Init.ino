@@ -11,10 +11,11 @@ void initPads()
 
 void initSections()
 {
-	section[0].first = 3;
-	section[0].last = 0;
-	section[0].dir = -1;
-	section[0].length = 4;
+	Sections[0].first = 3;
+	Sections[0].last = 0;
+	Sections[0].dir = -1;
+
+
 
 	////initialize Sections
 	//for (int i = 0; i < SECTION_COUNT; i++)

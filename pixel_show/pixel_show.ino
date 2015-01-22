@@ -43,6 +43,7 @@ A0 - Pot
 #define MODE2_LED 23
 #define ON_LED 21
 
+
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
@@ -51,6 +52,9 @@ A0 - Pot
 //   NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
 //   NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip), correct for neopixel stick
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(SECTION_PIXEL_COUNT * SECTION_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
+
+enum State { OFF, CHASE, FREEZE, SOLID };
+
 
 bool oldState[PAD_COUNT];
 bool newState[PAD_COUNT];
@@ -61,7 +65,7 @@ int currentMode = 0;
 int pixelCount = SECTION_PIXEL_COUNT * SECTION_COUNT;
 
 				  
-SectionClass section[SECTION_COUNT];
+SectionClass Sections[SECTION_COUNT];
 
 #define MODE1_DISTANCE 3
 
@@ -84,8 +88,8 @@ void setup() {
 
 	EEPROM_readAnything(0, interval);
 
-	Serial.print("Interval = " );
-	Serial.print(interval);
+	/*Serial.print("Interval = " );
+	Serial.print(interval);*/
 	
 
 	initControls();
@@ -145,25 +149,137 @@ void readControls()
 		}
 	}
 }
+uint32_t Color_Off = strip.Color(0, 0, 0);
+
 
 void mode1()
+{
+	loadButtons();
+
+	for (int s = 0; s < SECTION_COUNT; s+=2)
+	{
+		if (newState[0] == 0)
+		{
+			if (Sections[0].state == OFF || Sections[0].state == FREEZE || Sections[0].state == SOLID)
+			{
+				Sections[0].state = CHASE;
+			}
+		}
+		else
+		{
+			if (Sections[0].state == CHASE)
+			{
+				Sections[0].state = FREEZE;
+			}
+		}
+
+		switch (Sections[0].state)
+		{
+		case OFF:
+			mode_solid(Sections[s], Color_Off);
+			mode_solid(Sections[s+1], Color_Off);
+			break;
+		case SOLID:
+			mode_solid(Sections[s], strip.Color(128, 128, 0));
+			mode_solid(Sections[s + 1], strip.Color(128, 128, 0));
+			break;
+		case CHASE:
+			mode_chase(Sections[s]);
+			mode_chase(Sections[s+1]);
+			break;
+		case FREEZE:
+			mode_freeze(Sections[s]);
+			mode_freeze(Sections[s+1]);
+			break;
+		default:
+			break;
+		}
+	}
+}
+
+void mode_freeze(SectionClass section)
 {
 	unsigned long currentMillis = millis();
 
 	if (currentMillis - previousMillis <= interval) {
 		return;
 	}
-	// save the last time you blinked the LED 
+	// save the last time
 	previousMillis = currentMillis;
+}
+
+void mode_solid(SectionClass section, uint32_t color)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - previousMillis <= interval) {
+		return;
+	}
+	// save the last time
+	previousMillis = currentMillis;
+
+
+	for (uint16_t i = 0; i < section.Length(); i++) {
+		int p = section.GetPixel(i);
+		strip.setPixelColor(p, color);
+	}
+
+	strip.show();
+}
+
+
+	//unsigned long currentMillis = millis();
+
+	//if (currentMillis - previousMillis <= interval) {
+	//	return;
+	//}
+	//// save the last time you blinked the LED 
+	//previousMillis = currentMillis;
+	//
+	//for (int s = 0; s < SECTION_COUNT; s++)
+	//{
+	//	for (int i = 0; i < section.length; i++)
+	//	{
+	//		int p = section[s].GetPixel(i);
+	//		Serial.println(p);
+	//		
+	//		uint32_t color = 0; 
+	//		if (stepcount == i)
+	//		{
+	//			color = Wheel(colorcount);
+	//			colorcount += 10;
+	//			if (colorcount > 255) colorcount = 0;
+	//		}
+	//		strip.setPixelColor(p, color);
+	//	}
+	//	strip.show();
+	//	stepcount++;
+	//	if (stepcount >= section[s].length)
+	//	{
+	//		stepcount = 0;
+	//	}
+	//}
+
+
+
+void mode_chase(SectionClass section)
+{
 	
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - previousMillis <= interval) {
+		return;
+	}
+	// save the last time
+	previousMillis = currentMillis;
+
 	for (int s = 0; s < SECTION_COUNT; s++)
 	{
-		for (int i = 0; i < section[s].length; i++)
+		for (int i = 0; i < section.Length(); i++)
 		{
-			int p = section[s].GetPixel(i);
-			Serial.println(p);
+			int p = section.GetPixel(i);
 			
-			uint32_t color = 0; 
+			uint32_t color = 0;
 			if (stepcount == i)
 			{
 				color = Wheel(colorcount);
@@ -174,12 +290,13 @@ void mode1()
 		}
 		strip.show();
 		stepcount++;
-		if (stepcount >= section[s].length)
+		if (stepcount >= section.Length())
 		{
 			stepcount = 0;
 		}
 	}
 }
+
 
 void mode2()
 {

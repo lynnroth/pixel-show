@@ -1,15 +1,17 @@
 #include <Arduino.h>
 
+
 class SectionClass
 {
 private:
-	
-public:
 	int length;
+public:
+	
 	int first;
 	int last;
 	int dir;
-	SectionClass() : first(0), last(0), dir(1), length(-1) {}
+	int state;
+	SectionClass() : first(0), last(0), dir(1), length(-1), state(0) {}
 	int GetPixel(int val)
 	{
 		if (dir == -1)
@@ -21,14 +23,14 @@ public:
 			return first + val;
 		}
 	}
-	/*int Length()
+	int Length()
 	{
 		if (length <= 0)
 		{
 			length = abs(last - first) + 1;
 		}
 		return length;
-	}*/
+	}
 };
 
 
