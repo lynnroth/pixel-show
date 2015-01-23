@@ -27,16 +27,18 @@ A7 - Audio
 
 
 #include "fix_fft.h"
-#include "Section.cpp"
+#include "Section.h"
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
 #include <Adafruit_NeoPixel.h>
 
 #define PAD_COUNT 5
-#define SECTION_PIXEL_COUNT 4//60
-#define SECTION_COUNT 1
+#define SECTION_PIXEL_COUNT 27 //4
+#define SECTION_COUNT 6
 #define PIXEL_PIN 16
 #define PAD_PIN_START 0
+
+#define MODE1_DISTANCE 3
 
 #define MODE1_PIN 12
 #define MODE2_PIN 13
@@ -49,14 +51,11 @@ A7 - Audio
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
 // Parameter 2 = pin number (most are valid)
 // Parameter 3 = pixel type flags, add together as needed:
-//   NEO_RGB     Pixels are wired for RGB bitstream
 //   NEO_GRB     Pixels are wired for GRB bitstream, correct for neopixel stick
-//   NEO_KHZ400  400 KHz bitstream (e.g. FLORA pixels)
 //   NEO_KHZ800  800 KHz bitstream (e.g. High Density LED strip), correct for neopixel stick
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(SECTION_PIXEL_COUNT * SECTION_COUNT, PIXEL_PIN, NEO_GRB + NEO_KHZ800);
 
 enum State { OFF, CHASE, FREEZE, SOLID };
-
 
 bool oldState[PAD_COUNT];
 bool newState[PAD_COUNT];
@@ -65,25 +64,14 @@ int showType = 0;
 int currentMode = 0;
 
 int pixelCount = SECTION_PIXEL_COUNT * SECTION_COUNT;
-
-				  
+										  
 SectionClass Sections[SECTION_COUNT];
 
-#define MODE1_DISTANCE 3
-
-bool mode1_step = 0;
-int mode1_color = 0;
-int mode1_q = 0;
 unsigned long mode1_delay = 50UL;
 unsigned long mode1_timerA = 0;
 unsigned long mode1_timerB = 0;
 
-
-int stepcount = 0;
-unsigned long previousMillis = 0;
 long interval = 100;
-unsigned int colorcount = 0;
-
 
 void setup() {
 	Serial.begin(115200);
@@ -226,8 +214,6 @@ void loop() {
 //	strip.show();
 //}
 
-
-
 void readControls()
 {
 	if (!digitalRead(10))
@@ -242,46 +228,75 @@ void readControls()
 	}
 }
 uint32_t Color_Off = strip.Color(0, 0, 0);
-
-
+				
 void mode1()
 {
 	loadButtons();
 
-	for (int s = 0; s < SECTION_COUNT; s+=2)
+	/*if (millis() % 1000 == 0)
 	{
-		if (newState[0] == 0)
-		{
-			if (Sections[0].state == OFF || Sections[0].state == FREEZE || Sections[0].state == SOLID)
-			{
-				Sections[0].state = CHASE;
-			}
-		}
-		else
-		{
-			if (Sections[0].state == CHASE)
-			{
-				Sections[0].state = FREEZE;
-			}
-		}
+		Serial.print(newState[0]);
+		Serial.print("\t");
+		Serial.print(newState[1]);
+		Serial.print("\t");
+		Serial.print(newState[2]);
+		Serial.print("\t");
+		
+		Serial.println();
+	}*/
 
-		switch (Sections[0].state)
+	/*for (int s = 0; s < SECTION_COUNT; s+=2)*/
+	for (int s = 0; s < 3; s += 1)
+	{
+		int button = s;
+		//int button = s / 2;
+		if (newState[button] == 0)
+		{
+			Serial.print("Button On: ");
+			Serial.println(button);
+
+			if (Sections[s].state == OFF || Sections[s].state == FREEZE || Sections[s].state == SOLID)
+			{
+				Sections[s].state = CHASE;
+			}
+
+		}
+		/*else
+		{
+			if (Sections[s].state == CHASE)
+			{
+				if (button == 0 || button == 2)
+				{
+					Sections[s].state = FREEZE;
+				}
+				else
+				{
+					Sections[s].state = SOLID;
+				}
+			}
+		}*/
+
+
+		////only for testing
+		//Sections[s].state = CHASE;
+
+		switch (Sections[s].state)
 		{
 		case OFF:
 			mode_solid(Sections[s], Color_Off);
-			mode_solid(Sections[s+1], Color_Off);
+		//	mode_solid(Sections[s+1], Color_Off);
 			break;
 		case SOLID:
-			mode_solid(Sections[s], strip.Color(128, 128, 0));
-			mode_solid(Sections[s + 1], strip.Color(128, 128, 0));
+			mode_solid(Sections[s], strip.Color(80, 64, 0));
+		//	mode_solid(Sections[s + 1], strip.Color(80, 64, 0));
 			break;
 		case CHASE:
 			mode_chase(Sections[s]);
-			mode_chase(Sections[s+1]);
+		//	mode_chase(Sections[s+1]);
 			break;
 		case FREEZE:
 			mode_freeze(Sections[s]);
-			mode_freeze(Sections[s+1]);
+		//	mode_freeze(Sections[s+1]);
 			break;
 		default:
 			break;
@@ -289,26 +304,68 @@ void mode1()
 	}
 }
 
+
+void mode_chase(SectionClass section)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= interval) {
+		return;
+	}
+	// save the last time
+	section.lastmillis = currentMillis;
+
+	for (int i = 0; i < section.Length(); i++)
+	{
+		uint32_t color = 0;
+		int p = section.GetPixel(i);
+		if (i % MODE1_DISTANCE == section.GetStepCount())
+		{
+			color = Wheel(section.GetColorCount());
+			section.IncrementColorCount(10);
+		}
+		strip.setPixelColor(p, color);
+	}
+
+	strip.show();
+	
+	section.IncrementStepCount();
+
+
+	Serial.print(section.first);
+	Serial.print("\t");
+	Serial.println(section.GetStepCount());
+	/*Serial.print("\t");
+	Serial.print(section.stepCount + 1);
+	section.stepCount = section.stepCount + 1;
+	Serial.print("\t"); 
+	Serial.print(section.stepCount);
+	
+	Serial.print("\t");
+	Serial.println(section.stepCount);
+	*/
+}
+
 void mode_freeze(SectionClass section)
 {
 	unsigned long currentMillis = millis();
 
-	if (currentMillis - previousMillis <= interval) {
+	if (currentMillis - section.lastmillis <= interval) {
 		return;
 	}
 	// save the last time
-	previousMillis = currentMillis;
+	section.lastmillis = currentMillis;
 }
 
 void mode_solid(SectionClass section, uint32_t color)
 {
 	unsigned long currentMillis = millis();
 
-	if (currentMillis - previousMillis <= interval) {
+	if (currentMillis - section.lastmillis <= interval) {
 		return;
 	}
 	// save the last time
-	previousMillis = currentMillis;
+	section.lastmillis = currentMillis;
 
 
 	for (uint16_t i = 0; i < section.Length(); i++) {
@@ -354,75 +411,39 @@ void mode_solid(SectionClass section, uint32_t color)
 
 
 
-void mode_chase(SectionClass section)
-{
-	
-	unsigned long currentMillis = millis();
-
-	if (currentMillis - previousMillis <= interval) {
-		return;
-	}
-	// save the last time
-	previousMillis = currentMillis;
-
-	for (int s = 0; s < SECTION_COUNT; s++)
-	{
-		for (int i = 0; i < section.Length(); i++)
-		{
-			int p = section.GetPixel(i);
-			
-			uint32_t color = 0;
-			if (stepcount == i)
-			{
-				color = Wheel(colorcount);
-				colorcount += 10;
-				if (colorcount > 255) colorcount = 0;
-			}
-			strip.setPixelColor(p, color);
-		}
-		strip.show();
-		stepcount++;
-		if (stepcount >= section.Length())
-		{
-			stepcount = 0;
-		}
-	}
-}
-
-
-
-
-void mode_chase()
-{
-	
-	unsigned long currentMillis = millis();
-	
-	if (currentMillis - previousMillis <= interval) {
-		return;
-	}
-
-	// save the last time you blinked the LED 
-	previousMillis = currentMillis;
-
-	for (uint16_t i = 0; i < pixelCount; i++) 
-	{
-		uint32_t color = 0;
-		if (stepcount == i)
-		{
-			color = Wheel(colorcount);
-			colorcount+=10;
-			if (colorcount > 255) colorcount = 0;
-		}
-		strip.setPixelColor(i, color);
-	}
-	strip.show();
-	stepcount++;
-	if (stepcount >= pixelCount)
-	{
-		stepcount = 0;
-	}
-	
-}
+//
+//
+//void mode_chase()
+//{
+//	
+//	unsigned long currentMillis = millis();
+//	
+//	if (currentMillis - previousMillis <= interval) {
+//		return;
+//	}
+//
+//	// save the last time you blinked the LED 
+//	previousMillis = currentMillis;
+//
+//	for (uint16_t i = 0; i < pixelCount; i++) 
+//	{
+//		uint32_t color = 0;
+//		if (stepcount == i)
+//		{
+//			color = Wheel(colorcount);
+//			colorcount+=10;
+//			if (colorcount > 255) colorcount = 0;
+//		}
+//		strip.setPixelColor(i, color);
+//	}
+//	strip.show();
+//	stepcount++;
+//	if (stepcount >= pixelCount)
+//	{
+//		stepcount = 0;
+//	}
+//	
+//}
 #define DEBUG 0
 
 const int Yres = 255;

@@ -64,6 +64,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <EEPROMAnything.h>
 #include <Init.ino>
 #include <Section.cpp>
+#include <Section.h>
 #include <buttons.ino>
 #include <fix_fft.cpp>
 #include <fix_fft.h>
