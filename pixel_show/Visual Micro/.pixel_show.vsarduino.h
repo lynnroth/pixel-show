@@ -60,6 +60,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #define portInputRegister(P)
 #define portModeRegister(P)
 #include <pixel_show.ino>
+#include <Audio.ino>
 #include <EEPROMAnything.cpp>
 #include <EEPROMAnything.h>
 #include <Init.ino>
