@@ -11,9 +11,6 @@ Pins
 8 - MODE 1
 9 - MODE 2
 
-
-
-
 16 - NeoPixel Pin
 
 21 - LED ON 
@@ -21,10 +18,8 @@ Pins
 23 - LED MODE 2
 
 A0 - Pot
-
 A7 - Audio
 */
-
 
 #include "fix_fft.h"
 #include "Section.h"
@@ -33,8 +28,8 @@ A7 - Audio
 #include <Adafruit_NeoPixel.h>
 
 #define PAD_COUNT 5
-#define SECTION_PIXEL_COUNT 27 //4
-#define SECTION_COUNT 6
+#define SECTION_PIXEL_COUNT 27
+#define SECTION_COUNT 10
 #define PIXEL_PIN 16
 #define PAD_PIN_START 0
 
@@ -71,12 +66,12 @@ unsigned long mode1_delay = 50UL;
 unsigned long mode1_timerA = 0;
 unsigned long mode1_timerB = 0;
 
-long interval = 100;
+long interval = 1000;
 
 void setup() {
 	Serial.begin(115200);
 
-	EEPROM_readAnything(0, interval);
+	//EEPROM_readAnything(0, interval);
 
 	/*Serial.print("Interval = " );
 	Serial.print(interval);*/
@@ -232,36 +227,38 @@ uint32_t Color_Off = strip.Color(0, 0, 0);
 void mode1()
 {
 	loadButtons();
-
-	/*if (millis() % 1000 == 0)
+	
+	for (int s = 0; s < SECTION_COUNT; s++)
 	{
-		Serial.print(newState[0]);
-		Serial.print("\t");
-		Serial.print(newState[1]);
-		Serial.print("\t");
-		Serial.print(newState[2]);
-		Serial.print("\t");
-		
-		Serial.println();
-	}*/
+		int button = s / 2;
 
-	/*for (int s = 0; s < SECTION_COUNT; s+=2)*/
-	for (int s = 0; s < 3; s += 1)
-	{
-		int button = s;
-		//int button = s / 2;
-		if (newState[button] == 0)
+		Serial.print("B ");
+		Serial.print(button);
+		Serial.print("=");
+		Serial.println(newState[button]);
+
+
+		if (newState[button] == LOW)
 		{
-			Serial.print("Button On: ");
-			Serial.println(button);
-
+			
 			if (Sections[s].state == OFF || Sections[s].state == FREEZE || Sections[s].state == SOLID)
 			{
+				Serial.print("X ");
+				Serial.print(s);
+				Serial.print("=");
+				Serial.println(Sections[s].state);
+
 				Sections[s].state = CHASE;
+
+				Serial.print("Y ");
+				Serial.print(s);
+				Serial.print("=");
+				Serial.println(Sections[s].state);
+
 			}
 
 		}
-		/*else
+		else
 		{
 			if (Sections[s].state == CHASE)
 			{
@@ -274,38 +271,35 @@ void mode1()
 					Sections[s].state = SOLID;
 				}
 			}
-		}*/
+		}
+	}
 
-
-		////only for testing
-		//Sections[s].state = CHASE;
-
+	for (int s = 0; s < SECTION_COUNT; s++)
+	{
+		
 		switch (Sections[s].state)
 		{
 		case OFF:
 			mode_solid(Sections[s], Color_Off);
-		//	mode_solid(Sections[s+1], Color_Off);
 			break;
 		case SOLID:
 			mode_solid(Sections[s], strip.Color(80, 64, 0));
-		//	mode_solid(Sections[s + 1], strip.Color(80, 64, 0));
 			break;
 		case CHASE:
 			mode_chase(Sections[s]);
-		//	mode_chase(Sections[s+1]);
 			break;
 		case FREEZE:
 			mode_freeze(Sections[s]);
-		//	mode_freeze(Sections[s+1]);
 			break;
 		default:
 			break;
 		}
 	}
+	strip.show();
 }
 
 
-void mode_chase(SectionClass section)
+void mode_chase(SectionClass & section)
 {
 	unsigned long currentMillis = millis();
 
@@ -313,8 +307,8 @@ void mode_chase(SectionClass section)
 		return;
 	}
 	// save the last time
-	section.lastmillis = currentMillis;
-
+	section.SetLastMillis(currentMillis);
+	
 	for (int i = 0; i < section.Length(); i++)
 	{
 		uint32_t color = 0;
@@ -326,27 +320,17 @@ void mode_chase(SectionClass section)
 		}
 		strip.setPixelColor(p, color);
 	}
-
-	strip.show();
+	//strip.show();
 	
 	section.IncrementStepCount();
 
+	//Serial.print("\t");
+	//Serial.println(section.GetStepCount());
+	//Serial.println();
 
-	Serial.print(section.first);
-	Serial.print("\t");
-	Serial.println(section.GetStepCount());
-	/*Serial.print("\t");
-	Serial.print(section.stepCount + 1);
-	section.stepCount = section.stepCount + 1;
-	Serial.print("\t"); 
-	Serial.print(section.stepCount);
-	
-	Serial.print("\t");
-	Serial.println(section.stepCount);
-	*/
 }
 
-void mode_freeze(SectionClass section)
+void mode_freeze(SectionClass & section)
 {
 	unsigned long currentMillis = millis();
 
@@ -357,7 +341,7 @@ void mode_freeze(SectionClass section)
 	section.lastmillis = currentMillis;
 }
 
-void mode_solid(SectionClass section, uint32_t color)
+void mode_solid(SectionClass & section, uint32_t color)
 {
 	unsigned long currentMillis = millis();
 

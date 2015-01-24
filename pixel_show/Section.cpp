@@ -2,7 +2,20 @@
 #include "Section.h"
 
 
+void SectionClass::Init(int p_id, int p_first, int p_last, int p_dir, int p_state)
+{
+	id = p_id;
+	first = p_first;
+	last = p_last;
+	dir = p_dir;
+	state = p_state;
+	
+}
 
+void SectionClass::SetLastMillis(unsigned long val)
+{
+	lastmillis = val;
+}
 
 int SectionClass::GetPixel(int val)
 {
@@ -18,48 +31,57 @@ int SectionClass::GetPixel(int val)
 
 int SectionClass::Length()
 {
-	if (this->length <= 0)
+	if (length <= 0)
 	{
-		this->length = abs(this->last - this->first) + 1;
+		length = abs(last - first) + 1;
 	}
-	return this->length;
+	return length;
 }
 
 int SectionClass::GetColorCount()
 {
-	return this->colorCount;
+	return colorCount;
 }
 
 void SectionClass::IncrementColorCount(int val)
 {
-	this->colorCount += 10;
-	if (this->colorCount > 255)
+	colorCount += val;
+	if (colorCount > 255)
 	{
-		this->colorCount = 0;
+		colorCount = 0;
 	}
 }
 
 int SectionClass::GetStepCount()
 {
-	return this->stepCount;
+	return stepCount;
 }
 void SectionClass::IncrementStepCount()
 {
-	Serial.print("\t\tthis->stepCount: ");
-	Serial.print(this->stepCount);
-	int val = this->stepCount + 1;
-	(this->stepCount) = val;
-	Serial.print("\t\tVal: ");
-	Serial.print(val);
-	Serial.print("\t\tIncrement: ");
-	Serial.print(this->stepCount);
-	if (this->stepCount > 3)
+	stepCount++;
+	if (stepCount >= 3)
 	{
-		Serial.print("\t\tReset: ");
-
-		this->stepCount = 0;
+		stepCount = 0;
 	}
-	Serial.println();
 }
 
+void SectionClass::PrintStatus()
+{
+	Serial.print("Section:"); 
+	//Serial.print(first); 
+	//Serial.print(",");
+	//Serial.print(last);
+	//Serial.print("->");
+	//Serial.print(Length());
+	Serial.print(id);
+	Serial.print(":\t");
+	Serial.print(stepCount);
+	Serial.print("\t");
+	Serial.print(colorCount);
+	Serial.print("\t");
+	Serial.print(state);
+	Serial.print("\t");
+
+	Serial.println();
+}
 

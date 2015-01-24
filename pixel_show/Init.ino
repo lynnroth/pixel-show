@@ -5,56 +5,23 @@ void initPads()
 	{
 		pinMode(i, INPUT_PULLUP);
 		oldState[i] = HIGH;
+		newState[i] = HIGH;
 		pad_pin[i] = i;
 	}
 }
 
 void initSections()
 {
-	Sections[0].first = 26;
-	Sections[0].last = 0;
-	Sections[0].dir = -1;
-	Sections[0].state = OFF;
-
-	Sections[1].first = 27;
-	Sections[1].last = 53;
-	Sections[1].dir = 1;
-	Sections[1].state = OFF;
-
-	Sections[2].first = 80;
-	Sections[2].last = 54;
-	Sections[2].dir = -1;
-	Sections[2].state = OFF;
-
-	Sections[3].first = 81;
-	Sections[3].last = 107;
-	Sections[3].dir = 1;
-	Sections[3].state = OFF;
-
-	Sections[4].first = 134;
-	Sections[4].last = 108;
-	Sections[4].dir = -1;
-	Sections[4].state = OFF;
-
-	Sections[5].first = 135;
-	Sections[5].last = 161;
-	Sections[5].dir = 1;
-	Sections[5].state = OFF;
-
-	/*Sections[0].first = 26;
-	Sections[0].last = 0;
-	Sections[0].dir = -1;
-
-	Sections[1].first = 27;
-	Sections[1].last = 53;
-	Sections[1].dir = 1;*/
-
-	////initialize Sections
-	//for (int i = 0; i < SECTION_COUNT; i++)
-	//{
-	//	section[i].first = (i * SECTION_PIXEL_COUNT);
-	//	section[i].last = ((i + 1) * SECTION_PIXEL_COUNT) - 1;
-	//}
+	Sections[0].Init(0, 26, 0, -1, OFF);
+	Sections[1].Init(1, 27, 53, 1, OFF);
+	Sections[3].Init(2, 54, 80, 1, OFF);
+	Sections[2].Init(3, 107, 81, -1, OFF);
+	Sections[4].Init(4, 134, 108, -1, OFF);
+	Sections[5].Init(5, 135, 161, 1, OFF);
+	Sections[7].Init(6, 162, 188, 1, OFF);
+	Sections[6].Init(7, 215, 189, -1, OFF);
+	Sections[8].Init(8, 242, 216, -1, OFF);
+	Sections[9].Init(9, 243, 269, 1, OFF);
 }
 
 void initControls()

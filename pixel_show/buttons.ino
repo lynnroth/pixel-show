@@ -1,4 +1,5 @@
 
+#define DEBOUNCE_TIME 10
 
 void loadButtons()
 {
@@ -11,20 +12,25 @@ void loadButtons()
 		// Check if state changed from high to low (button press).
 		if (n == LOW && oldState[i] == HIGH) {
 			// Short delay to debounce button.
-			delay(20);
+			delay(DEBOUNCE_TIME);
 			// Check if button is still low after debounce.
 			n = digitalRead(pad_pin[i]);
 			if (n == LOW) {
+				oldState[i] = newState[i]; 
 				newState[i] = LOW;
 			}
 		}
-		else
+		else if (n == HIGH && oldState[i] == LOW)
 		{
-			newState[i] = HIGH;
+			delay(DEBOUNCE_TIME);
+			// Check if button is still low after debounce.
+			n = digitalRead(pad_pin[i]);
+			if (n == HIGH) {
+				oldState[i] = newState[i]; 
+				newState[i] = HIGH;
+			}
 		}
-
-		// Set the last button state to the old state.
-		oldState[i] = newState[i];
+		
 	}
 }
 
