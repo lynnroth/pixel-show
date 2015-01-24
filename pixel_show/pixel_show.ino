@@ -232,31 +232,12 @@ void mode1()
 	{
 		int button = s / 2;
 
-		Serial.print("B ");
-		Serial.print(button);
-		Serial.print("=");
-		Serial.println(newState[button]);
-
-
 		if (newState[button] == LOW)
 		{
-			
 			if (Sections[s].state == OFF || Sections[s].state == FREEZE || Sections[s].state == SOLID)
 			{
-				Serial.print("X ");
-				Serial.print(s);
-				Serial.print("=");
-				Serial.println(Sections[s].state);
-
 				Sections[s].state = CHASE;
-
-				Serial.print("Y ");
-				Serial.print(s);
-				Serial.print("=");
-				Serial.println(Sections[s].state);
-
 			}
-
 		}
 		else
 		{
@@ -320,14 +301,7 @@ void mode_chase(SectionClass & section)
 		}
 		strip.setPixelColor(p, color);
 	}
-	//strip.show();
-	
 	section.IncrementStepCount();
-
-	//Serial.print("\t");
-	//Serial.println(section.GetStepCount());
-	//Serial.println();
-
 }
 
 void mode_freeze(SectionClass & section)
@@ -351,13 +325,10 @@ void mode_solid(SectionClass & section, uint32_t color)
 	// save the last time
 	section.lastmillis = currentMillis;
 
-
 	for (uint16_t i = 0; i < section.Length(); i++) {
 		int p = section.GetPixel(i);
 		strip.setPixelColor(p, color);
 	}
-
-	strip.show();
 }
 
 
@@ -441,7 +412,6 @@ int debugLoop;
 
 void mode2()
 {
-
 	for (int i = 0; i < BANDS; i++) {    // 64 bins = 32 bins of usable spectrum data
 		data[i] = ((analogRead(AUDIOPIN))); // / 4) - 128);  // chose how to interpret the data from analog in                                      
 		im[i] = 0;   // imaginary component
