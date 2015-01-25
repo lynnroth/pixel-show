@@ -13,6 +13,8 @@ char data_avgs[BANDS/2];
 char peaks[BANDS / 2]; 
 int debugLoop;
 
+
+
 Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MATRIX_X, MATRIX_Y, PIXEL_PIN,
 	NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT +
 	NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG,
@@ -22,11 +24,47 @@ int min = 1000;
 
 void mode2()
 {
+	if (!button_triggered)
+	{
+		loadButtons();
+
+		if (newState[0] == 0 || newState[1] == 0 || newState[2] == 0 || newState[3] == 0 || newState[4] == 0)
+		{
+			button_triggered = true;
+		}
+
+		if (!button_triggered)
+		{
+			return;
+		}
+	}
+
+	//	Serial.println(gain);
+
 	for (int i = 0; i < BANDS; i++) 
 	{    // 64 bins = 32 bins of usable spectrum data
-		data[i] = (analogRead(AUDIOPIN) - 230) ; // / 4) - 128);  // chose how to interpret the data from analog in                                      
-		im[i] = 0;   // imaginary component
 
+		int val = analogRead(AUDIOPIN);
+		//Serial.print(gain);
+		//Serial.print("\t");
+
+		//Serial.print(val);
+		//Serial.print("\t");
+		val = val - 230 + gain;
+
+		//Serial.print(val);
+		//Serial.print("\t");
+
+		//val = map(val, -1014, 1024 - gain, -127, 127);
+		
+		//Serial.print(val);
+		//Serial.print("\t");
+		//Serial.println();
+
+		data[i] = (val); 
+		im[i] = 0;   // imaginary component
+		
+		
 		//if (data[i] > max)
 		//	max = data[i];
 		//if (data[i] < min)
@@ -55,6 +93,9 @@ void mode2()
 	decay(1);
 }
 
+
+
+
 uint16_t red = matrix.Color(128, 0, 0);
 uint16_t blue = matrix.Color(0, 0, 128);
 uint16_t green = matrix.Color(0, 128, 0);
@@ -62,9 +103,9 @@ uint16_t yellow = matrix.Color(128, 128, 0);
 uint16_t orange = matrix.Color(255, 128, 0);
 uint16_t white = matrix.Color(255, 255, 255);
 
-#define L0 1
-#define L1 3
-#define L2 5
+#define L0 2
+#define L1 4
+#define L2 6
 #define L3 8
 #define L4 10
 
@@ -73,6 +114,8 @@ uint16_t white = matrix.Color(255, 255, 255);
 //70
 //90
 //100
+unsigned int colormap = 0;
+int avg_max = 10;
 
 void Display(){
 
@@ -85,139 +128,129 @@ void Display(){
 		if (data_avgs[x] < min)
 			min = data_avgs[x];
 
-		//char v = ' ';
 
-		//if (data_avgs[x] > L4)
-		//{
-		//	v = '^';
-		//}
-		//else if (data_avgs[x] > L3)
-		//{
-		//	v = '|';
-		//}
-		//else if (data_avgs[x] > L2)
-		//{
-		//	v = ':';
-		//}
-		//else if (data_avgs[x] > L1)
-		//{
-		//	v = ',';
-		//}
-		//else if (data_avgs[x] > L0)
-		//{
-		//	v = '.';
-		//}
+		if (data_avgs[x] > avg_max)
+			avg_max = data_avgs[x];
 
-		//	
-		//Serial.print(v);
+
+		if (DEBUG)
+		{
+			char v = ' ';
+
+			if (data_avgs[x] > L4)
+			{
+				v = '^';
+			}
+			else if (data_avgs[x] > L3)
+			{
+				v = '|';
+			}
+			else if (data_avgs[x] > L2)
+			{
+				v = ':';
+			}
+			else if (data_avgs[x] > L1)
+			{
+				v = ',';
+			}
+			else if (data_avgs[x] > L0)
+			{
+				v = '.';
+			}
+						
+			Serial.print(v);
+			Serial.println();
+		}
+		
 		uint16_t color = 0;
+		colormap = data_avgs[x] + x; //  map(data_avgs[x], L0, avg_max, 0, 255);
+		color = Wheel(colormap);
+		
+		//current
 		int y = 0;
 		if (data_avgs[x] > L4)
 		{
 			y = 4;
-			color = red;
 		}
 		else if (data_avgs[x] > L3)
 		{
 			y = 3;
-			color = orange;
 		}
 		else if (data_avgs[x] > L2)
 		{
 			y = 2;
-			color = yellow;
 		}
 		else if (data_avgs[x] > L1)
 		{
 			y = 1;
-			color = green;
 		}
 		else if (data_avgs[x] > L0)
 		{
 			y = 0;
-			color = blue;
 		}
-
+		else
+		{
+			color = 0;
+		}
+		
 		matrix.drawLine(x, 0, x, y, color);
-
-
 
 		//Peak
 		bool peak = false;
-
 		if (peaks[x] > data_avgs[x] && peaks[x] > L4)
 		{
 			peak = true;
 			y = 4;
-			color = red;
 		}
 		else if (peaks[x] > data_avgs[x] && peaks[x] > L3)
 		{
 			peak = true;
 			y = 3;
-			color = orange;
 		}
 		else if (peaks[x] > data_avgs[x] && peaks[x] > L2)
 		{
 			peak = true;
 			y = 2;
-			color = yellow;
 		}
 		else if (peaks[x] > data_avgs[x] && peaks[x] > L1)
 		{
 			peak = true;
 			y = 1;
-			color = green;
 		}
-	/*	else if (peaks[x] > data_avgs[x] && peaks[x] > L0)
-		{
-			peak = true;
-			y = 0;
-			color = blue;
-		}*/
-
+	
 		if (peak)
 		{
+			colormap = map(peaks[x], 0, 15, 0, 255);
+			color = Wheel(colormap);
 			matrix.drawPixel(x, y, color);
 		}
-
-		//lcd.setCursor(x, 0); // draw first (top) row Left
-		//if (peaks[x] == 0) {
-		//	lcd.print("_");  // less LCD artifacts than " "
-		//}
-		//else {
-		//	lcd.write(peaks[x]);
-		//}
-
-		//lcd.setCursor(x, 1); // draw second (bottom) row Right
-		//if (peaks[y] == 0){
-		//	lcd.print("_");
-		//}
-		//else {
-		//	lcd.write(peaks[y]);
-		//}
-
-		//Serial.print(data[x], DEC);
-		//Serial.print("  ");
 	}
+
+
+	//if (DEBUG)
+	//{
+	//	Serial.print("  ");
+	//	Serial.print(max);
+	//	Serial.print("\t");
+	//	Serial.print(min);
+
+	//	Serial.println();
+
+	//}
+
 	matrix.show();
 
-	Serial.print("  ");
-	Serial.print(max);
-	Serial.print("\t");
-	Serial.print(min);
 
-	Serial.println();
 
-	debugLoop++;
-	if (DEBUG && (debugLoop > 99))
-	{
-		Serial.print("Free RAM = ");
-		Serial.println(freeRam(), DEC);
-		Serial.println(millis(), DEC);
+	//debugLoop++;
+	//if (DEBUG && (debugLoop > 99))
+	//{
+	//	Serial.print("Free RAM = ");
+	//	Serial.println(freeRam(), DEC);
+	//	Serial.println(millis(), DEC);
 
-		debugLoop = 0;
-	}
+	//	debugLoop = 0;
+	//}
 }
 
 
@@ -227,17 +260,22 @@ int freeRam() {
 	return (int)&v - (__brkval == 0 ? (int)&__heap_start : (int)__brkval);
 }
 
+int DecayTest = 0;
 
 void decay(int decayrate){
-	int DecayTest = 1;
+	
+	DecayTest++;
 	// reduce the values of the last peaks by 1 
 	if (DecayTest == decayrate){
 		for (int x = 0; x < MATRIX_X; x++) {
 			peaks[x] = peaks[x] - 1;  // subtract 1 from each column peaks
-			DecayTest = 0;
+			
 		}
+		DecayTest = 0;
 	}
 
-	DecayTest++;
+	
+	
+
 }
 
