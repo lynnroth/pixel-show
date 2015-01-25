@@ -11,6 +11,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		..\README.md = ..\README.md
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "matrixtest", "..\..\matrixtest\matrixtest.vcxproj", "{68714E5E-C8F5-4B6F-B663-486651F9CC63}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fix_fft", "..\..\fix_fft\fix_fft.vcxproj", "{890479FC-DBEE-422B-A15D-05F9A6B27CB4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -21,6 +25,14 @@ Global
 		{EB5EF1F2-1A28-4614-8D06-0D5FDF6920C1}.Debug|Win32.Build.0 = Debug|Win32
 		{EB5EF1F2-1A28-4614-8D06-0D5FDF6920C1}.Release|Win32.ActiveCfg = Release|Win32
 		{EB5EF1F2-1A28-4614-8D06-0D5FDF6920C1}.Release|Win32.Build.0 = Release|Win32
+		{68714E5E-C8F5-4B6F-B663-486651F9CC63}.Debug|Win32.ActiveCfg = Debug|Win32
+		{68714E5E-C8F5-4B6F-B663-486651F9CC63}.Debug|Win32.Build.0 = Debug|Win32
+		{68714E5E-C8F5-4B6F-B663-486651F9CC63}.Release|Win32.ActiveCfg = Release|Win32
+		{68714E5E-C8F5-4B6F-B663-486651F9CC63}.Release|Win32.Build.0 = Release|Win32
+		{890479FC-DBEE-422B-A15D-05F9A6B27CB4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{890479FC-DBEE-422B-A15D-05F9A6B27CB4}.Debug|Win32.Build.0 = Debug|Win32
+		{890479FC-DBEE-422B-A15D-05F9A6B27CB4}.Release|Win32.ActiveCfg = Release|Win32
+		{890479FC-DBEE-422B-A15D-05F9A6B27CB4}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

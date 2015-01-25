@@ -1,12 +1,13 @@
-// 
-// 
-// 
-
-#include "fix_fft.h"
-
 #include <avr/pgmspace.h>
+#include "fix_fft.h"
+//#include <WProgram.h>
 
-#include <Arduino.h>
+// If this is not defined it removes the fix_fftr function
+#define INCLUDE_FFTR
+
+// If this is not defined it removes any code which performs
+// the inverse transform to save on code space.
+#define INCLUDE_INVERSE
 
 /* fix_fft.c - Fixed-point in-place Fast Fourier Transform  */
 /*
@@ -40,8 +41,8 @@ Modified for 8bit values David Keller  10.10.2010
 */
 
 
-#define N_WAVE      256    /* full length of Sinewave[] */
-#define LOG2_N_WAVE 8      /* log2(N_WAVE) */
+#define N_WAVE	256    /* full length of Sinewave[] */
+#define LOG2_N_WAVE 8	/* log2(N_WAVE) */
 
 
 
@@ -51,9 +52,15 @@ Since we only use 3/4 of N_WAVE, we define only
 this many samples, in order to conserve data space.
 */
 
-
-
-const prog_int8_t Sinewave[N_WAVE - N_WAVE / 4] PROGMEM = {
+// This is only 192 bytes. On a 328 chip it might be worth
+// leaving it in sram.
+//const prog_int8_t Sinewave[N_WAVE-N_WAVE/4] PROGMEM = {
+//#define ORIGINAL_TABLE
+#ifdef ORIGINAL_TABLE
+const prog_char Sinewave[N_WAVE - N_WAVE / 4] PROGMEM = {
+#else
+const prog_char Sinewave[N_WAVE / 2] PROGMEM = {
+#endif
 	0, 3, 6, 9, 12, 15, 18, 21,
 	24, 28, 31, 34, 37, 40, 43, 46,
 	48, 51, 54, 57, 60, 63, 65, 68,
@@ -71,7 +78,7 @@ const prog_int8_t Sinewave[N_WAVE - N_WAVE / 4] PROGMEM = {
 	71, 68, 65, 63, 60, 57, 54, 51,
 	48, 46, 43, 40, 37, 34, 31, 28,
 	24, 21, 18, 15, 12, 9, 6, 3,
-
+#ifdef ORIGINAL_TABLE
 	0, -3, -6, -9, -12, -15, -18, -21,
 	-24, -28, -31, -34, -37, -40, -43, -46,
 	-48, -51, -54, -57, -60, -63, -65, -68,
@@ -80,7 +87,7 @@ const prog_int8_t Sinewave[N_WAVE - N_WAVE / 4] PROGMEM = {
 	-106, -108, -109, -111, -112, -114, -115, -117,
 	-118, -119, -120, -121, -122, -123, -124, -124,
 	-125, -126, -126, -127, -127, -127, -127, -127,
-
+#endif
 	/*-127, -127, -127, -127, -127, -127, -126, -126,
 	-125, -124, -124, -123, -122, -121, -120, -119,
 	-118, -117, -115, -114, -112, -111, -109, -108,
@@ -104,24 +111,12 @@ Scaling ensures that result remains 16-bit.
 */
 inline char FIX_MPY(char a, char b)
 {
-
-	//Serial.println(a);
-	//Serial.println(b);
-
-
 	/* shift right one less bit (i.e. 15-1) */
 	int c = ((int)a * (int)b) >> 6;
 	/* last bit shifted out = rounding-bit */
 	b = c & 0x01;
 	/* last shift + rounding bit */
 	a = (c >> 1) + b;
-
-	/*
-	Serial.println(Sinewave[3]);
-	Serial.println(c);
-	Serial.println(a);
-	while(1);*/
-
 	return a;
 }
 
@@ -135,6 +130,7 @@ int fix_fft(char fr[], char fi[], int m, int inverse)
 {
 	int mr, nn, i, j, l, k, istep, n, scale, shift;
 	char qr, qi, tr, ti, wr, wi;
+	int idx;
 
 	n = 1 << m;
 
@@ -167,6 +163,11 @@ int fix_fft(char fr[], char fi[], int m, int inverse)
 	l = 1;
 	k = LOG2_N_WAVE - 1;
 	while (l < n) {
+		// I had this split into two ifdefs with one around the
+		// shift=1 statement but a bug in the preprocessor makes
+		// it omit that statement altogether so I'm doing it this
+		// way.
+#ifdef INCLUDE_INVERSE
 		if (inverse) {
 			/* variable scaling, depending upon data */
 			shift = 0;
@@ -186,14 +187,11 @@ int fix_fft(char fr[], char fi[], int m, int inverse)
 				++scale;
 		}
 		else {
-			/*
-			fixed scaling, for proper normalization --
-			there will be log2(n) passes, so this results
-			in an overall factor of 1/n, distributed to
-			maximize arithmetic accuracy.
-			*/
 			shift = 1;
 		}
+#else
+		shift = 1;
+#endif
 		/*
 		it may not be obvious, but the shift will be
 		performed on each data point exactly once,
@@ -203,19 +201,24 @@ int fix_fft(char fr[], char fi[], int m, int inverse)
 		for (m = 0; m<l; ++m) {
 			j = m << k;
 			/* 0 <= j < N_WAVE/2 */
-			wr = pgm_read_word_near(Sinewave + j + N_WAVE / 4);
+#ifdef ORIGINAL_TABLE
+			wr = pgm_read_byte_near(Sinewave + j + N_WAVE / 4);
+			wi = -pgm_read_byte_near(Sinewave + j);
+#else
+			if ((idx = j + N_WAVE / 4) >= 128)
+				wr = -pgm_read_byte_near(Sinewave + idx - 128);
+			else
+				wr = pgm_read_byte_near(Sinewave + idx);
+			if (j >= 128)
+				wi = pgm_read_byte_near(Sinewave + j);
+			else
+				wi = -pgm_read_byte_near(Sinewave + j);
+#endif
 
-			/*Serial.println("asdfasdf");
-			Serial.println(wr);
-			Serial.println(j+N_WAVE/4);
-			Serial.println(Sinewave[256]);
-
-			Serial.println("");*/
-
-
-			wi = -pgm_read_word_near(Sinewave + j);
+#ifdef INCLUDE_INVERSE
 			if (inverse)
 				wi = -wi;
+#endif
 			if (shift) {
 				wr >>= 1;
 				wi >>= 1;
@@ -256,6 +259,7 @@ respectively in the original array. The above guarantees
 that fix_fft "sees" consecutive real samples as alternating
 real and imaginary samples in the complex array.
 */
+#ifdef INCLUDE_FFTR
 int fix_fftr(char f[], int m, int inverse)
 {
 	int i, N = 1 << (m - 1), scale = 0;
@@ -272,4 +276,4 @@ int fix_fftr(char f[], int m, int inverse)
 		scale = fix_fft(fi, fr, m - 1, inverse);
 	return scale;
 }
-
+#endif

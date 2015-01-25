@@ -19,6 +19,7 @@
     <None Include="Init.ino" />
     <None Include="buttons.ino" />
     <None Include="neo.ino" />
+    <None Include="audio.ino" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Visual Micro\.pixel_show.vsarduino.h">
@@ -27,12 +28,18 @@
     <ClInclude Include="EEPROMAnything.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="fix_fft.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="EEPROMAnything.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Section.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="fix_fft.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

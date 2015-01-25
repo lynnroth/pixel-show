@@ -65,6 +65,7 @@ extern "C" void __cxa_pure_virtual() {;}
 #include <Init.ino>
 #include <Section.cpp>
 #include <Section.h>
+#include <audio.ino>
 #include <buttons.ino>
 #include <fix_fft.cpp>
 #include <fix_fft.h>
