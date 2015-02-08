@@ -1,5 +1,5 @@
 #define DEBUG 0
-#define AUDIOPIN 7
+#define AUDIOPIN 2
 
 #define BANDS 128
 #define FFT_M 7
@@ -22,7 +22,30 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MATRIX_X, MATRIX_Y, PIXEL_PIN,
 int max = 0;
 int min = 1000;
 
+uint16_t color = 0;
+unsigned long lastmillis = 0;
+
 void mode2()
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - lastmillis <= interval) {
+		return;
+	}
+	// save the last time
+	lastmillis = currentMillis;
+
+	for (int i = 1; i < 54; i++)
+	{
+		color += 50;
+		matrix.drawCircle(26, 3, i, color);
+	}
+	//Serial.println(color);
+	matrix.show();
+}
+
+
+void mode2a()
 {
 	if (!button_triggered)
 	{
@@ -158,8 +181,8 @@ void Display(){
 				v = '.';
 			}
 						
-			Serial.print(v);
-			Serial.println();
+			//Serial.print(v);
+			//Serial.println();
 		}
 		
 		uint16_t color = 0;

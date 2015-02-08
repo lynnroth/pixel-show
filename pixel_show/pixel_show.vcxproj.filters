@@ -28,6 +28,9 @@
     <ClInclude Include="EEPROMAnything.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Section.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="fix_fft.h">
       <Filter>Header Files</Filter>
     </ClInclude>

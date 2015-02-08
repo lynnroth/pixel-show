@@ -1,12 +1,12 @@
 void initPads()
 {
 	//initialize pad inputs
-	for (int i = PAD_PIN_START; i < PAD_PIN_START + PAD_COUNT; i++)
+	for (int i = 0; i < PAD_COUNT; i++)
 	{
-		pinMode(i, INPUT_PULLUP);
+		SetInputPullup(i + PAD_PIN_START);
 		oldState[i] = HIGH;
 		newState[i] = HIGH;
-		pad_pin[i] = i;
+		pad_pin[i] = i + PAD_PIN_START;
 	}
 }
 
@@ -26,12 +26,16 @@ void initSections()
 
 void initControls()
 {
-	pinMode(SAVE_PIN, INPUT_PULLUP);
-	pinMode(MODE1_PIN, INPUT_PULLUP);
-	pinMode(MODE2_PIN, INPUT_PULLUP);
+	SetInputPullup(SELECT0_PIN);
+	SetInputPullup(SELECT1_PIN);
+	SetInputPullup(MODE0_PIN);
+	SetInputPullup(MODE1_PIN);
+}
 
-	pinMode(MODE1_LED, OUTPUT);
-	pinMode(MODE2_LED, OUTPUT);
-	pinMode(ON_LED, OUTPUT);
+void SetInputPullup(int pin)
+{
+	Serial.print("Init ");
+	Serial.println(pin);
+	pinMode(pin, INPUT_PULLUP);
 
 }

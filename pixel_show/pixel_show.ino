@@ -8,17 +8,18 @@ Pins
 4 - Pad4
 
 
-8 - MODE 1
-9 - MODE 2
+11 - MODE 0
+12 - MODE 1
+13 - Select0 
+14 - Select1 (NC)
+
 
 16 - NeoPixel Pin
+17 - NeoPixel Status Strand
 
-21 - LED ON 
-22 - LED MODE 1
-23 - LED MODE 2
 
 A0 - Pot
-A7 - Audio
+A1 - Audio
 */
 
 #include <gamma.h>
@@ -30,21 +31,21 @@ A7 - Audio
 #include <EEPROM.h>
 #include "EEPROMAnything.h"
 
-#define PAD_COUNT 5
 #define SECTION_PIXEL_COUNT 27
 #define SECTION_COUNT 10
 #define PIXEL_PIN 16
 #define STATUS_PIXEL_PIN 17
-#define PAD_PIN_START 0
+
+#define PAD_PIN_START 19
+#define PAD_COUNT 5
 
 #define MODE1_DISTANCE 3
 
+#define MODE0_PIN 11
 #define MODE1_PIN 12
-#define MODE2_PIN 13
-#define SAVE_PIN 14
-#define MODE1_LED 22
-#define MODE2_LED 23
-#define ON_LED 21
+
+#define SELECT0_PIN 13
+#define SELECT1_PIN 14
 
 
 // Parameter 1 = number of pixels in strip,  neopixel stick has 8
@@ -103,32 +104,40 @@ void setup() {
 	status_strip.show();
 }
 
+
+uint32_t Color_Off = strip.Color(0, 0, 0);
+uint32_t Color_Red = status_strip.Color(255, 0, 0);
+uint32_t Color_Green = status_strip.Color(0, 255, 0);
+uint32_t Color_Blue = status_strip.Color(0, 0, 255);
+
+uint32_t Color_Gold = strip.Color(255, 115, 5);
+
+
+uint32_t mode0_color = Color_Red;
+uint32_t mode1_color = Color_Green;
+uint32_t mode2_color = Color_Blue;
+uint32_t mode3_color = Color_Gold; //Gold
+
+
+
 void loop() {
 
 	currentMode = getMode();
 	
-	
-
 	if (currentMode == 0)
 	{
-		status_strip.setPixelColor(0, status_strip.Color(255, 0, 0));
+		status_strip.setPixelColor(0, mode0_color);
 		status_strip.show();
-		digitalWrite(ON_LED, HIGH);
-		digitalWrite(MODE1_LED, LOW);
-		digitalWrite(MODE2_LED, LOW);
-
 		pixels_Off();
 		button_triggered = false;
+		ClearSections();
 	}
 	else if (currentMode == 1)
 	{
-		readControls();
+		readControls_mode1();
 
-		status_strip.setPixelColor(0, status_strip.Color(0, 255, 0));
+		status_strip.setPixelColor(0, mode1_color);
 		status_strip.show(); 
-		digitalWrite(ON_LED, LOW);
-		digitalWrite(MODE1_LED, HIGH);
-		digitalWrite(MODE2_LED, LOW);
 		button_triggered = false;
 
 		mode1();
@@ -137,36 +146,50 @@ void loop() {
 	{
 		readControls_mode2();
 
-		status_strip.setPixelColor(0, status_strip.Color(0, 0, 255));
+		status_strip.setPixelColor(0, mode2_color);
 		status_strip.show(); 
-		digitalWrite(ON_LED, LOW);
-		digitalWrite(MODE1_LED, LOW);
-		digitalWrite(MODE2_LED, HIGH);
 
 		mode2();
 	}
+	else if (currentMode == 3)
+	{
+		readControls_mode1();
+
+		status_strip.setPixelColor(0, mode3_color);
+		status_strip.show();
+
+		mode3();
+	}
 }
 
+void ClearSections()
+{
+	Sections[0].state = OFF;
+	Sections[1].state = OFF;
+	Sections[3].state = OFF;
+	Sections[2].state = OFF;
+	Sections[4].state = OFF;
+}
 
 int oldval = 1;
 
-void readControls()
+void readControls_mode1()
 {
-	int val1 = digitalRead(14);
+	int val1 = digitalRead(SELECT0_PIN);
 	if (val1) delay(10);
 
-	int val = digitalRead(14);
+	int val = digitalRead(SELECT0_PIN);
 	if (val1 == 0 && val == 0 && oldval == 1)
 	{
-		status_strip.setPixelColor(1, status_strip.Color(255, 0, 0));
-		status_strip.show();
-
 		oldval = 0;
 		
 		int newinterval = analogRead(0);
 
 		if (interval != newinterval)
 		{
+			status_strip.setPixelColor(1, status_strip.Color(255, 0, 0));
+			status_strip.show();
+
 			interval = newinterval;
 			
 			EEPROM_writeAnything(0, interval);
@@ -192,10 +215,10 @@ void readControls()
 
 void readControls_mode2()
 {
-	int val1 = digitalRead(14);
+	int val1 = digitalRead(SELECT0_PIN);
 	if (val1) delay(10);
 
-	int val = digitalRead(14);
+	int val = digitalRead(SELECT0_PIN);
 	if (val1 == 0 && val == 0 && oldval == 1)
 	{
 		status_strip.setPixelColor(1, status_strip.Color(255, 0, 0));
@@ -228,7 +251,7 @@ void readControls_mode2()
 }
 
 
-uint32_t Color_Off = strip.Color(0, 0, 0);
+
 				
 void mode1()
 {
@@ -310,6 +333,31 @@ void mode_chase(SectionClass & section)
 	section.IncrementStepCount();
 }
 
+
+void mode_chase_singleColor(SectionClass & section, uint32_t single_color)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= interval) {
+		return;
+	}
+	// save the last time
+	section.SetLastMillis(currentMillis);
+
+	for (int i = 0; i < section.Length(); i++)
+	{
+		uint32_t color = 0;
+		int p = section.GetPixel(i);
+		if (i % MODE1_DISTANCE == section.GetStepCount())
+		{
+			color = single_color;
+			section.IncrementColorCount(10);
+		}
+		strip.setPixelColor(p, color);
+	}
+	section.IncrementStepCount();
+}
+
 void mode_freeze(SectionClass & section)
 {
 	unsigned long currentMillis = millis();
@@ -338,70 +386,54 @@ void mode_solid(SectionClass & section, uint32_t color)
 }
 
 
-	//unsigned long currentMillis = millis();
-
-	//if (currentMillis - previousMillis <= interval) {
-	//	return;
-	//}
-	//// save the last time you blinked the LED 
-	//previousMillis = currentMillis;
-	//
-	//for (int s = 0; s < SECTION_COUNT; s++)
-	//{
-	//	for (int i = 0; i < section.length; i++)
-	//	{
-	//		int p = section[s].GetPixel(i);
-	//		Serial.println(p);
-	//		
-	//		uint32_t color = 0; 
-	//		if (stepcount == i)
-	//		{
-	//			color = Wheel(colorcount);
-	//			colorcount += 10;
-	//			if (colorcount > 255) colorcount = 0;
-	//		}
-	//		strip.setPixelColor(p, color);
-	//	}
-	//	strip.show();
-	//	stepcount++;
-	//	if (stepcount >= section[s].length)
-	//	{
-	//		stepcount = 0;
-	//	}
-	//}
 
 
 
-//
-//
-//void mode_chase()
-//{
-//	
-//	unsigned long currentMillis = millis();
-//	
-//	if (currentMillis - previousMillis <= interval) {
-//		return;
-//	}
-//
-//	// save the last time you blinked the LED 
-//	previousMillis = currentMillis;
-//
-//	for (uint16_t i = 0; i < pixelCount; i++) 
-//	{
-//		uint32_t color = 0;
-//		if (stepcount == i)
-//		{
-//			color = Wheel(colorcount);
-//			colorcount+=10;
-//			if (colorcount > 255) colorcount = 0;
-//		}
-//		strip.setPixelColor(i, color);
-//	}
-//	strip.show();
-//	stepcount++;
-//	if (stepcount >= pixelCount)
-//	{
-//		stepcount = 0;
-//	}
-//	
-//}
+void mode3()
+{
+	loadButtons();
+
+	for (int s = 0; s < SECTION_COUNT; s++)
+	{
+		int button = s / 2;
+
+		if (newState[button] == LOW)
+		{
+			if (Sections[s].state == OFF || Sections[s].state == FREEZE || Sections[s].state == SOLID)
+			{
+				Sections[s].state = CHASE;
+			}
+		}
+		else
+		{
+			if (Sections[s].state == CHASE)
+			{
+				Sections[s].state = SOLID;
+			}
+		}
+	}
+
+	for (int s = 0; s < SECTION_COUNT; s++)
+	{
+
+		switch (Sections[s].state)
+		{
+		case OFF:
+			mode_solid(Sections[s], Color_Off);
+			break;
+		case SOLID:
+			mode_solid(Sections[s], Color_Gold);
+			break;
+		case CHASE:
+			mode_chase_singleColor(Sections[s], Color_Gold);
+			break;
+		case FREEZE:
+			mode_freeze(Sections[s]);
+			break;
+		default:
+			break;
+		}
+	}
+	strip.show();
+}
+
