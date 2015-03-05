@@ -1,6 +1,16 @@
 
 #define DEBOUNCE_TIME 10
 
+void resetButtons()
+{
+
+	for (int i = 0; i < PAD_COUNT; i++)
+	{
+		newState[i] = HIGH;
+	}
+		
+}
+
 void loadButtons()
 {
 	
@@ -31,13 +41,13 @@ void loadButtons()
 			}
 		}
 
-		Serial.print(i);
-		Serial.print(":");
-		Serial.print(newState[i]);
-		Serial.print("\t");
+		//Serial.print(i);
+		//Serial.print(":");
+		//Serial.print(newState[i]);
+		//Serial.print("\t");
 		
 	}
-	Serial.print("\r\n");
+	//Serial.print("\r\n");
 }
 
 

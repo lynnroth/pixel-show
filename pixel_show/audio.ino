@@ -19,33 +19,20 @@ Adafruit_NeoMatrix matrix = Adafruit_NeoMatrix(MATRIX_X, MATRIX_Y, PIXEL_PIN,
 	NEO_MATRIX_BOTTOM + NEO_MATRIX_LEFT +
 	NEO_MATRIX_ROWS + NEO_MATRIX_ZIGZAG,
 	NEO_GRB + NEO_KHZ800);
-int max = 0;
-int min = 1000;
+
 
 uint16_t color = 0;
 unsigned long lastmillis = 0;
 
+int L0 = 2;
+int L1 = 4;
+int L2 = 6;
+int L3 = 8;
+int L4 = 10;
+
+
+
 void mode2()
-{
-	unsigned long currentMillis = millis();
-
-	if (currentMillis - lastmillis <= interval) {
-		return;
-	}
-	// save the last time
-	lastmillis = currentMillis;
-
-	for (int i = 1; i < 54; i++)
-	{
-		color += 50;
-		matrix.drawCircle(26, 3, i, color);
-	}
-	//Serial.println(color);
-	matrix.show();
-}
-
-
-void mode2a()
 {
 	if (!button_triggered)
 	{
@@ -62,31 +49,36 @@ void mode2a()
 		}
 	}
 
-	//	Serial.println(gain);
-
 	for (int i = 0; i < BANDS; i++) 
-	{    // 64 bins = 32 bins of usable spectrum data
+	{    // 128 bins = 64 bins of usable spectrum data
 
-		int val = analogRead(AUDIOPIN);
-		//Serial.print(gain);
-		//Serial.print("\t");
+		int val = analogRead(AUDIOPIN) - 160;
+	//	Serial.print(gain);
+	//	Serial.print("\t");
 
-		//Serial.print(val);
-		//Serial.print("\t");
-		val = val - 230 + gain;
-
+	//	Serial.print(val);
+	//	Serial.print("\t");
+		/*if (val > 0)
+		{
+			val = val + gain;
+		}
+		else
+		{
+			val = val - gain;
+		}
+*/
 		//Serial.print(val);
 		//Serial.print("\t");
 
 		//val = map(val, -1014, 1024 - gain, -127, 127);
-		
+		//val = map(val, min, max, -127, 127);
+		//
 		//Serial.print(val);
 		//Serial.print("\t");
 		//Serial.println();
 
 		data[i] = (val); 
 		im[i] = 0;   // imaginary component
-		
 		
 		//if (data[i] > max)
 		//	max = data[i];
@@ -126,11 +118,17 @@ uint16_t yellow = matrix.Color(128, 128, 0);
 uint16_t orange = matrix.Color(255, 128, 0);
 uint16_t white = matrix.Color(255, 255, 255);
 
-#define L0 2
-#define L1 4
-#define L2 6
-#define L3 8
-#define L4 10
+//#define L0 2
+//#define L1 4
+//#define L2 6
+//#define L3 8
+//#define L4 10
+
+//#define L0 0
+//#define L1 1
+//#define L2 2
+//#define L3 3
+//#define L4 4
 
 //30
 //50
@@ -144,21 +142,54 @@ void Display(){
 
 	matrix.clear();
 
+
+	if (gain > 800)
+	{
+		L0 = 1;
+		L1 = 2;
+		L2 = 3;
+		L3 = 4;
+		L4 = 5;
+	}
+	else if (gain > 500)
+	{
+		L0 = 2;
+		L1 = 4;
+		L2 = 6;
+		L3 = 8;
+		L4 = 10;
+	}
+	else if (gain > 200)
+	{
+		L0 = 2;
+		L1 = 5;
+		L2 = 8;
+		L3 = 10;
+		L4 = 12;
+	}
+	else 
+	{
+		L0 = 3;
+		L1 = 6;
+		L2 = 9;
+		L3 = 12;
+		L4 = 15;
+	}
+
+
 	for (int x = 1; x < MATRIX_X; x++) 
 	{ 
-		if (data_avgs[x] > max)
-			max = data_avgs[x];
-		if (data_avgs[x] < min)
-			min = data_avgs[x];
+		//if (data_avgs[x] > max)
+		//	max = data_avgs[x];
+		//if (data_avgs[x] < min)
+		//	min = data_avgs[x];
+		//if (data_avgs[x] > avg_max)
+		//	avg_max = data_avgs[x];
 
 
-		if (data_avgs[x] > avg_max)
-			avg_max = data_avgs[x];
-
-
-		if (DEBUG)
+		//if (DEBUG)
 		{
-			char v = ' ';
+			char v = '_';
 
 			if (data_avgs[x] > L4)
 			{
@@ -180,36 +211,41 @@ void Display(){
 			{
 				v = '.';
 			}
-						
-			//Serial.print(v);
+			//Serial.print((int)data_avgs[x]);
+			Serial.print(v);
 			//Serial.println();
 		}
 		
 		uint16_t color = 0;
-		colormap = data_avgs[x] + x; //  map(data_avgs[x], L0, avg_max, 0, 255);
-		color = Wheel(colormap);
+		//colormap = data_avgs[x] + x; //  map(data_avgs[x], L0, avg_max, 0, 255);
+		//color = Wheel(colormap);
 		
 		//current
 		int y = 0;
 		if (data_avgs[x] > L4)
 		{
 			y = 4;
+			color = red;
 		}
 		else if (data_avgs[x] > L3)
 		{
 			y = 3;
+			color = orange;
 		}
 		else if (data_avgs[x] > L2)
 		{
 			y = 2;
+			color = green;
 		}
 		else if (data_avgs[x] > L1)
 		{
 			y = 1;
+			color = green;
 		}
 		else if (data_avgs[x] > L0)
 		{
 			y = 0;
+			color = blue;
 		}
 		else
 		{
@@ -243,8 +279,9 @@ void Display(){
 	
 		if (peak)
 		{
-			colormap = map(peaks[x], 0, 15, 0, 255);
-			color = Wheel(colormap);
+			//colormap = map(peaks[x], 0, 15, 0, 255);
+			//color = Wheel(colormap);
+			color = red;
 			matrix.drawPixel(x, y, color);
 		}
 	}
@@ -257,7 +294,7 @@ void Display(){
 	//	Serial.print("\t");
 	//	Serial.print(min);
 
-	//	Serial.println();
+		Serial.println();
 
 	//}
 

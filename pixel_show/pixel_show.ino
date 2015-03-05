@@ -33,8 +33,8 @@ A1 - Audio
 
 #define SECTION_PIXEL_COUNT 27
 #define SECTION_COUNT 10
-#define PIXEL_PIN 16
-#define STATUS_PIXEL_PIN 17
+#define PIXEL_PIN 17
+#define STATUS_PIXEL_PIN 16
 
 #define PAD_PIN_START 19
 #define PAD_COUNT 5
@@ -69,13 +69,16 @@ int currentMode = 0;
 int pixelCount = SECTION_PIXEL_COUNT * SECTION_COUNT;
 bool button_triggered = false;
 
+bool rainbowState = false;
 SectionClass Sections[SECTION_COUNT];
 
 unsigned long mode1_delay = 50UL;
 unsigned long mode1_timerA = 0;
 unsigned long mode1_timerB = 0;
+uint32_t rainbow[7];
 
 long interval = 1000;
+long mode3_interval = 1000;
 int gain = 0;
 
 void setup() {
@@ -83,6 +86,8 @@ void setup() {
 	delay(2000);
 	EEPROM_readAnything(0, interval);
 	EEPROM_readAnything(4, gain);
+	EEPROM_readAnything(8, mode3_interval);
+
 
 	Serial.print("Interval = " );
 	Serial.println(interval);
@@ -90,6 +95,9 @@ void setup() {
 	Serial.print("Gain = ");
 	Serial.println(gain);
 
+
+	Serial.print("Mode3_Interval = ");
+	Serial.println(mode3_interval);
 
 	initControls();
 
@@ -102,13 +110,22 @@ void setup() {
 
 	status_strip.begin();
 	status_strip.show();
+
+	rainbow[0] = strip.Color(255, 0, 0);
+	rainbow[1] = strip.Color(255, 64, 0);
+	rainbow[2] = strip.Color(255, 255, 0);
+	rainbow[3] = strip.Color(0, 255, 0);
+	rainbow[4] = strip.Color(0, 0, 192);
+	rainbow[5] = strip.Color(75, 0, 130);
+	rainbow[6] = strip.Color(255, 0, 255);
+
 }
 
 
 uint32_t Color_Off = strip.Color(0, 0, 0);
-uint32_t Color_Red = status_strip.Color(255, 0, 0);
-uint32_t Color_Green = status_strip.Color(0, 255, 0);
-uint32_t Color_Blue = status_strip.Color(0, 0, 255);
+uint32_t Color_Red = status_strip.Color(20, 0, 0);
+uint32_t Color_Green = status_strip.Color(0, 20, 0);
+uint32_t Color_Blue = status_strip.Color(0, 0, 20);
 
 uint32_t Color_Gold = strip.Color(255, 115, 5);
 
@@ -120,29 +137,34 @@ uint32_t mode3_color = Color_Gold; //Gold
 
 
 
+
 void loop() {
 
 	currentMode = getMode();
 	
-	if (currentMode == 0)
+	if (currentMode == 0)  //OFF - RED
 	{
 		status_strip.setPixelColor(0, mode0_color);
 		status_strip.show();
 		pixels_Off();
 		button_triggered = false;
+		rainbowState = false;
 		ClearSections();
+		resetButtons();
 	}
-	else if (currentMode == 1)
+	else if (currentMode == 1) //Rainbow waterfall - GREEN  //Multi Color Chase / Freeze - GREEN
 	{
 		readControls_mode1();
+		
 
 		status_strip.setPixelColor(0, mode1_color);
 		status_strip.show(); 
 		button_triggered = false;
 
-		mode1();
+		//mode1();
+		modeRainbow();
 	}
-	else if (currentMode == 2)
+	else if (currentMode == 2) //Audio - BLUE
 	{
 		readControls_mode2();
 
@@ -151,9 +173,9 @@ void loop() {
 
 		mode2();
 	}
-	else if (currentMode == 3)
+	else if (currentMode == 3) //Gold Chase / Solid - GOLD
 	{
-		readControls_mode1();
+		readControls_mode3();
 
 		status_strip.setPixelColor(0, mode3_color);
 		status_strip.show();
@@ -169,9 +191,15 @@ void ClearSections()
 	Sections[3].state = OFF;
 	Sections[2].state = OFF;
 	Sections[4].state = OFF;
+	Sections[5].state = OFF;
+	Sections[6].state = OFF;
+	Sections[7].state = OFF;
+	Sections[8].state = OFF;
+	Sections[9].state = OFF;
 }
 
 int oldval = 1;
+
 
 void readControls_mode1()
 {
@@ -211,6 +239,42 @@ void readControls_mode1()
 }
 
 
+void readControls_mode3()
+{
+	int val1 = digitalRead(SELECT0_PIN);
+	if (val1) delay(10);
+
+	int val = digitalRead(SELECT0_PIN);
+	if (val1 == 0 && val == 0 && oldval == 1)
+	{
+		oldval = 0;
+
+		int newinterval = analogRead(0);
+
+		if (mode3_interval != newinterval)
+		{
+			status_strip.setPixelColor(1, status_strip.Color(255, 0, 0));
+			status_strip.show();
+
+			mode3_interval = newinterval;
+
+			EEPROM_writeAnything(8, mode3_interval);
+
+			Serial.print("Save Mode3_Interval = ");
+			Serial.println(mode3_interval);
+
+			delay(200);
+
+			status_strip.setPixelColor(1, status_strip.Color(0, 0, 0));
+			status_strip.show();
+		}
+	}
+	else if (val == 1)
+	{
+		oldval = 1;
+	}
+
+}
 
 
 void readControls_mode2()
@@ -240,6 +304,26 @@ void readControls_mode2()
 			delay(200);
 
 			status_strip.setPixelColor(1, status_strip.Color(0, 0, 0));
+			
+			uint32_t c = 0;
+			if (gain > 800)
+			{
+				c = status_strip.Color(10, 0, 0);
+			}
+			else if (gain > 500)
+			{
+				c = status_strip.Color(10, 5, 0);
+			}
+			else if (gain > 200)
+			{
+				c = status_strip.Color(10, 10, 0);
+			}
+			else
+			{
+				c = status_strip.Color(0, 10, 0);
+			}
+
+			status_strip.setPixelColor(2, c);
 			status_strip.show();
 		}
 	}
@@ -250,6 +334,61 @@ void readControls_mode2()
 
 }
 
+
+int rainbowCount = 0;
+long rainbowlastmillis = 0;
+
+void modeRainbow()
+{
+	loadButtons();
+
+	for (int s = 0; s < SECTION_COUNT/2; s++)
+	{
+		if (newState[s] == LOW)
+		{
+			rainbowState = true;
+		}
+	}
+
+	if (rainbowState)
+	{
+		unsigned long currentMillis = millis();
+
+		if (currentMillis - rainbowlastmillis <= interval * 2) {
+			return;
+		}
+		// save the last time
+		rainbowlastmillis = currentMillis;
+
+		rainbowCount++;
+		rainbowCount = rainbowCount % 7;
+
+		for (int s = 0; s < SECTION_COUNT / 2; s++)
+		{
+		/*	Serial.print(s);
+			Serial.print("\t");
+
+			Serial.print(rainbowCount);
+			Serial.print("\t");*/
+
+			int c = (s + rainbowCount) % 7;
+
+		/*	Serial.print(c);
+			Serial.print("\t");
+
+			Serial.print(s * 2);
+			Serial.print("\t");
+
+			Serial.print(s * 2 + 1);
+			Serial.print("\t");
+			Serial.println();
+			*/
+			mode_solid(Sections[s * 2], rainbow[c]);
+			mode_solid(Sections[s * 2 + 1], rainbow[c]);
+		}
+		strip.show();
+	}
+}
 
 
 				
@@ -333,31 +472,6 @@ void mode_chase(SectionClass & section)
 	section.IncrementStepCount();
 }
 
-
-void mode_chase_singleColor(SectionClass & section, uint32_t single_color)
-{
-	unsigned long currentMillis = millis();
-
-	if (currentMillis - section.lastmillis <= interval) {
-		return;
-	}
-	// save the last time
-	section.SetLastMillis(currentMillis);
-
-	for (int i = 0; i < section.Length(); i++)
-	{
-		uint32_t color = 0;
-		int p = section.GetPixel(i);
-		if (i % MODE1_DISTANCE == section.GetStepCount())
-		{
-			color = single_color;
-			section.IncrementColorCount(10);
-		}
-		strip.setPixelColor(p, color);
-	}
-	section.IncrementStepCount();
-}
-
 void mode_freeze(SectionClass & section)
 {
 	unsigned long currentMillis = millis();
@@ -419,16 +533,16 @@ void mode3()
 		switch (Sections[s].state)
 		{
 		case OFF:
-			mode_solid(Sections[s], Color_Off);
+			mode_solid3(Sections[s], Color_Off);
 			break;
 		case SOLID:
-			mode_solid(Sections[s], Color_Gold);
+			mode_solid3(Sections[s], Color_Gold);
 			break;
 		case CHASE:
-			mode_chase_singleColor(Sections[s], Color_Gold);
+			mode_chase_singleColor3(Sections[s], Color_Gold);
 			break;
 		case FREEZE:
-			mode_freeze(Sections[s]);
+			mode_freeze3(Sections[s]);
 			break;
 		default:
 			break;
@@ -437,3 +551,78 @@ void mode3()
 	strip.show();
 }
 
+
+void mode_chase3(SectionClass & section)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= mode3_interval) {
+		return;
+	}
+	// save the last time
+	section.SetLastMillis(currentMillis);
+
+	for (int i = 0; i < section.Length(); i++)
+	{
+		uint32_t color = 0;
+		int p = section.GetPixel(i);
+		if (i % MODE1_DISTANCE == section.GetStepCount())
+		{
+			color = Wheel(section.GetColorCount());
+			section.IncrementColorCount(10);
+		}
+		strip.setPixelColor(p, color);
+	}
+	section.IncrementStepCount();
+}
+
+
+void mode_chase_singleColor3(SectionClass & section, uint32_t single_color)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= mode3_interval) {
+		return;
+	}
+	// save the last time
+	section.SetLastMillis(currentMillis);
+
+	for (int i = 0; i < section.Length(); i++)
+	{
+		uint32_t color = 0;
+		int p = section.GetPixel(i);
+		if (i % MODE1_DISTANCE == section.GetStepCount())
+		{
+			color = single_color;
+		}
+		strip.setPixelColor(p, color);
+	}
+	section.IncrementStepCount();
+}
+
+void mode_freeze3(SectionClass & section)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= mode3_interval) {
+		return;
+	}
+	// save the last time
+	section.lastmillis = currentMillis;
+}
+
+void mode_solid3(SectionClass & section, uint32_t color)
+{
+	unsigned long currentMillis = millis();
+
+	if (currentMillis - section.lastmillis <= mode3_interval) {
+		return;
+	}
+	// save the last time
+	section.lastmillis = currentMillis;
+
+	for (uint16_t i = 0; i < section.Length(); i++) {
+		int p = section.GetPixel(i);
+		strip.setPixelColor(p, color);
+	}
+}
